@@ -6,12 +6,51 @@ class NonogramGame:
         self.conditions = conditions
         self.size = (len(conditions[0]), len(conditions[1]))
         self.column_conditions = conditions[1] 
-        self.row_condtions = conditions[0]
+        self.row_conditions = conditions[0]
+        self.board = np.zeros(self.size)
+        self.completed_rows = np.zeros(self.size[0])
+        self.completed_columns = np.zeros(self.size[1])
+    
+    
+    def complete_rows_columns(self):
+        for i in range(self.size[0]): # Rows
+            twos_total = list(self.board[i, :]).count(2)
+            ones_total = list(self.board[i, :]).count(1)
+            combined_total = twos_total + ones_total
+            if combined_total == self.size[1]:
+                self.completed_rows[i] = 1
+            elif twos_total == sum(self.row_conditions[i]):
+                for j in range(self.size[1]):
+                    if self.board[i, j] == 0:
+                        self.board[i, j] = 1
+                self.completed_rows[i] = 1
+
+        for i in range(self.size[1]): #Columns
+            twos_total = list(self.board[:, i]).count(2)
+            ones_total = list(self.board[:, i]).count(1)
+            combined_total = twos_total + ones_total
+            if combined_total == self.size[0]:
+                self.completed_columns[i] = 1
+            elif twos_total == sum(self.column_conditions[i]):
+                for j in range(self.size[0]):
+                    if self.board[j, i] == 0:
+                        self.board[j, i] = 1
+                self.completed_columns[i] = 1
+    
+    def solve_first_last_LS(self):
+        for i in range(self.size[0]): #Rows
+            if self.completed_rows[i] == 1:
+                continue
+            zeros = [j for j, x in enumerate(list(self.board[i, :])) if x == 0]
+            twos = [j for j, x in enumerate(list(self.board[i, :])) if x == 2]
+            print(zeros)
+            
+            print(twos)
+
+
 
     def solve_nonogram(self):
-        board = np.zeros(self.size)
-
-        for row_nr, row_condition in enumerate(self.row_condtions): # First pass Rows
+        for row_nr, row_condition in enumerate(self.row_conditions): # First pass Rows
             reduced_row = []
             counter = 0
             for i, line_segment in enumerate(row_condition):
@@ -31,7 +70,7 @@ class NonogramGame:
                         value = 1
                     else:
                         value = 2
-                    board[row_nr][index] = value
+                    self.board[row_nr][index] = value
         for column_nr, column_condition in enumerate(self.column_conditions):# First pass Columns
             reduced_column  = []
             counter = 0
@@ -52,8 +91,13 @@ class NonogramGame:
                         value = 1
                     else:
                         value = 2
-                    board[index][column_nr] = value
-        print(board)
+                    self.board[index][column_nr] = value    
+
+        #Check for completed columns/rows:
+        self.complete_rows_columns()
+        self.solve_first_last_LS()
+        #print(self.board)
+
 
 
 example_conditions = ([[1], [2], [2, 1], [1, 1]], [[2],  [2], [2, 1], [1]])
